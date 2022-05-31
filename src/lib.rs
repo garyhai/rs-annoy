@@ -11,11 +11,11 @@ pub mod ffi {
     extern "C" {
         pub fn annoy_index_angular(f: c_int) -> *mut AnnoyIndexInterface;
         pub fn annoy_delete_index(index: *mut AnnoyIndexInterface);
-        pub fn annoy_add_item(index: *mut AnnoyIndexInterface, item: c_int, w: *const c_float);
-        pub fn annoy_build(index: *mut AnnoyIndexInterface, q: c_int);
+        pub fn annoy_add_item(index: *mut AnnoyIndexInterface, item: c_int, w: *const c_float) -> bool;
+        pub fn annoy_build(index: *mut AnnoyIndexInterface, q: c_int) -> bool;
 
-        pub fn annoy_load(index: *mut AnnoyIndexInterface, p: *const c_void);
-        pub fn annoy_save(index: *mut AnnoyIndexInterface, p: *const c_void);
+        pub fn annoy_load(index: *mut AnnoyIndexInterface, p: *const c_void) -> bool;
+        pub fn annoy_save(index: *mut AnnoyIndexInterface, p: *const c_void) -> bool;
 
         pub fn annoy_get_item(index: *mut AnnoyIndexInterface, item: c_int, result: *mut c_float);
 
@@ -48,31 +48,35 @@ impl Rannoy {
         Rannoy(n, index)
     }
 
-    pub fn add_item(&self, item: i32, w: &Vec<f32>) {
+    pub fn add_item(&self, item: i32, w: &Vec<f32>) -> bool {
         unsafe {
-            ffi::annoy_add_item(self.1, item, w.as_ptr());
+            ffi::annoy_add_item(self.1, item, w.as_ptr())
         }
     }
 
-    pub fn build(&self, n: i32) {
+    pub fn build(&self, n: i32) -> bool {
         unsafe {
-            ffi::annoy_build(self.1, n);
+            ffi::annoy_build(self.1, n)
         }
     }
 
-    pub fn save<P: AsRef<Path>>(&self, path: P) {
+    pub fn save<P: AsRef<Path>>(&self, path: P) -> bool {
         unsafe {
             if let Some(f) = path.as_ref().as_os_str().to_str() {
                 let path_str_c = CString::new(f).unwrap();
-                ffi::annoy_save(self.1, path_str_c.as_ptr() as *const c_void);
+                ffi::annoy_save(self.1, path_str_c.as_ptr() as *const c_void)
+            } else {
+                false
             }
         }
     }
 
-    pub fn load(&self, path: PathBuf) {
+    pub fn load(&self, path: PathBuf) -> bool {
         unsafe {
             if let Some(f) = path.to_str() {
-                ffi::annoy_load(self.1, f.as_ptr() as *const c_void);
+                ffi::annoy_load(self.1, f.as_ptr() as *const c_void)
+            } else {
+                false
             }
         }
     }
@@ -94,7 +98,7 @@ impl Rannoy {
         }
     }
 
-    pub fn get_nns_by_vector(&self, w: Vec<f32>, n: i32, search_k: i32) -> (Vec<i32>, Vec<f32>) {
+    pub fn get_nns_by_vector(&self, w: &[f32], n: i32, search_k: i32) -> (Vec<i32>, Vec<f32>) {
         let mut result = Vec::with_capacity(self.0);
         let result_ptr = result.as_mut_ptr();
 

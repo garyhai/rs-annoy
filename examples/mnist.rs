@@ -60,7 +60,9 @@ fn main() {
         .test_set_length(tst_size)
         .finalize();
 
-    save_model(trn_size, &trn_img, &trn_lbl, rows, cols);
+    if !PathBuf::from("mnist.ann").exists() {
+        save_model(trn_size, &trn_img, &trn_lbl, rows, cols);
+    }
 
     let annoy = rannoy::Rannoy::new(28 * 28);
     annoy.load(PathBuf::from("mnist.ann"));
@@ -84,7 +86,7 @@ fn main() {
             .map(|v| v as f32)
             .collect::<Vec<_>>();
 
-        let (result, _distance) = annoy.get_nns_by_vector(img_to_vec, 1, -1);
+        let (result, _distance) = annoy.get_nns_by_vector(&img_to_vec, 1, -1);
         let actual = result
             .into_iter()
             .map(|v| trn_lbl[v as usize])
