@@ -5,6 +5,8 @@ use std::ffi::CString;
 pub enum AnnoyIndexInterface {}
 
 pub mod ffi {
+    use libc::size_t;
+
     use super::*;
 
     #[link(name = "binding", kind = "static")]
@@ -15,6 +17,9 @@ pub mod ffi {
         pub fn annoy_build(index: *mut AnnoyIndexInterface, q: c_int) -> bool;
 
         pub fn annoy_load(index: *mut AnnoyIndexInterface, p: *const c_void) -> bool;
+
+        pub fn annoy_unload(index: *mut AnnoyIndexInterface);
+
         pub fn annoy_save(index: *mut AnnoyIndexInterface, p: *const c_void) -> bool;
 
         pub fn annoy_get_item(index: *mut AnnoyIndexInterface, item: c_int, result: *mut c_float);
@@ -26,7 +31,7 @@ pub mod ffi {
             search_k: c_int,
             result: *mut c_int,
             distances: *mut c_float,
-        );
+        ) -> size_t;
 
         pub fn annoy_get_nns_by_vector(
             index: *mut AnnoyIndexInterface,
@@ -35,7 +40,7 @@ pub mod ffi {
             search_k: c_int,
             result: *mut c_int,
             distances: *mut c_float,
-        );
+        ) -> size_t;
     }
 }
 
@@ -81,35 +86,41 @@ impl Rannoy {
         }
     }
 
+    pub fn unload(&self) {
+        unsafe {
+            ffi::annoy_unload(self.1);
+        }
+    }
+
     pub fn get_nns_by_item(&self, item: i32, n: i32, search_k: i32) -> (Vec<i32>, Vec<f32>) {
-        let mut result = Vec::with_capacity(self.0);
+        let mut result = Vec::with_capacity(n as usize);
         let result_ptr = result.as_mut_ptr();
 
-        let mut distance = Vec::with_capacity(self.0);
+        let mut distance = Vec::with_capacity(n as usize);
         let distance_ptr = distance.as_mut_ptr();
 
         unsafe {
-            ffi::annoy_get_nns_by_item(self.1, item, n, search_k, result_ptr, distance_ptr);
+            let size = ffi::annoy_get_nns_by_item(self.1, item, n, search_k, result_ptr, distance_ptr);
 
-            let a = std::slice::from_raw_parts_mut(result_ptr, n as usize);
-            let b = std::slice::from_raw_parts_mut(distance_ptr, n as usize);
+            let a = std::slice::from_raw_parts(result_ptr, size);
+            let b = std::slice::from_raw_parts(distance_ptr, size);
 
             (a.to_vec(), b.to_vec())
         }
     }
 
     pub fn get_nns_by_vector(&self, w: &[f32], n: i32, search_k: i32) -> (Vec<i32>, Vec<f32>) {
-        let mut result = Vec::with_capacity(self.0);
+        let mut result = Vec::with_capacity(n as usize);
         let result_ptr = result.as_mut_ptr();
 
-        let mut distance = Vec::with_capacity(self.0);
+        let mut distance = Vec::with_capacity(n as usize);
         let distance_ptr = distance.as_mut_ptr();
 
         unsafe {
-            ffi::annoy_get_nns_by_vector(self.1, w.as_ptr(), n, search_k, result_ptr, distance_ptr);
+            let size = ffi::annoy_get_nns_by_vector(self.1, w.as_ptr(), n, search_k, result_ptr, distance_ptr);
 
-            let a = std::slice::from_raw_parts_mut(result_ptr, n as usize);
-            let b = std::slice::from_raw_parts_mut(distance_ptr, n as usize);
+            let a = std::slice::from_raw_parts(result_ptr, size);
+            let b = std::slice::from_raw_parts(distance_ptr, size);
 
             (a.to_vec(), b.to_vec())
         }

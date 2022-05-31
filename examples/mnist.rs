@@ -20,7 +20,7 @@ fn load_mnist(
     (lbl[index], img)
 }
 
-fn save_model(size: u32, img: &Vec<u8>, lbl: &Vec<u8>, rows: u32, cols: u32) {
+fn save_model(size: u32, img: &Vec<u8>, lbl: &Vec<u8>, rows: u32, cols: u32) -> bool {
     println!("Load mnist data.");
     let annoy = rannoy::Rannoy::new(28 * 28);
 
@@ -43,7 +43,7 @@ fn save_model(size: u32, img: &Vec<u8>, lbl: &Vec<u8>, rows: u32, cols: u32) {
 
     annoy.build(30);
 
-    annoy.save(PathBuf::from("mnist.ann"));
+    annoy.save(PathBuf::from("mnist.ann"))
 }
 
 fn main() {
@@ -61,11 +61,17 @@ fn main() {
         .finalize();
 
     if !PathBuf::from("mnist.ann").exists() {
-        save_model(trn_size, &trn_img, &trn_lbl, rows, cols);
+        if !save_model(trn_size, &trn_img, &trn_lbl, rows, cols) {
+            eprintln!("failed to save index file");
+            return;
+        }
     }
 
     let annoy = rannoy::Rannoy::new(28 * 28);
-    annoy.load(PathBuf::from("mnist.ann"));
+    if !annoy.load(PathBuf::from("mnist.ann")) {
+        eprintln!("failed to load index file");
+        return;
+    }
 
     let mut rng = rand::thread_rng();
     for i in 0..10 {
@@ -78,7 +84,6 @@ fn main() {
             &tst_lbl,
             (ti % tst_size) as usize,
         );
-
         let img_to_vec = img
             .data()
             .clone()
@@ -86,18 +91,20 @@ fn main() {
             .map(|v| v as f32)
             .collect::<Vec<_>>();
 
-        let (result, _distance) = annoy.get_nns_by_vector(&img_to_vec, 1, -1);
+        let (result, _distance) = annoy.get_nns_by_vector(&img_to_vec, 3, -1);
         let actual = result
-            .into_iter()
-            .map(|v| trn_lbl[v as usize])
+            .iter()
+            .map(|&v| trn_lbl[v as usize])
             .collect::<Vec<_>>();
 
         println!("TEST{}: expected: {}, actual: {:?}", i, lbl, actual);
         if actual[0] != lbl {
-            let (_, trn) = load_mnist(10_000, 28, 28, &trn_img, &trn_lbl, lbl as usize);
-            let (_, tst) = load_mnist(10_000, 28, 28, &tst_img, &tst_lbl, actual[0] as usize);
+            // let (_, trn) = load_mnist(10_000, 28, 28, &trn_img, &trn_lbl, lbl as usize);
+            let (_, trn) = load_mnist(trn_size, rows, cols, &trn_img, &trn_lbl, result[0] as usize);
 
-            println!("{}\n{}", trn, tst);
+            println!("{}\n{}", img, trn);
         }
     }
+
+    annoy.unload();
 }

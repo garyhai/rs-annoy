@@ -16,11 +16,13 @@ extern "C" {
   
   void annoy_get_item(AnnoyIndexInterface<int32_t, float> *index, int item, float *result);
   
-  void annoy_get_nns_by_item(AnnoyIndexInterface<int32_t, float> *index, int item, int n, int search_k, int *result, float *distances);
+  size_t annoy_get_nns_by_item(AnnoyIndexInterface<int32_t, float> *index, int item, int n, int search_k, int *result, float *distances);
   
-  void annoy_get_nns_by_vector(AnnoyIndexInterface<int32_t, float> *index, const float *w, int n, int search_k, int *result, float *distances);
+  size_t annoy_get_nns_by_vector(AnnoyIndexInterface<int32_t, float> *index, const float *w, int n, int search_k, int *result, float *distances);
 
   bool annoy_load(AnnoyIndexInterface<int32_t, float> *index, const char *file);
+  
+  void annoy_unload(AnnoyIndexInterface<int32_t, float> *index);
 
   bool annoy_save(AnnoyIndexInterface<int32_t, float> *index, const char *file);
   

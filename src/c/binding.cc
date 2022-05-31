@@ -19,6 +19,11 @@ bool annoy_load(AnnoyIndexInterface<int32_t, float> *index, const char *file)
     return index->load(file, false);
 }
 
+void annoy_unload(AnnoyIndexInterface<int32_t, float> *index)
+{
+    index->unload();
+}
+
 void annoy_delete_index(AnnoyIndexInterface<int32_t, float> *index)
 {
     delete index;
@@ -42,7 +47,7 @@ void annoy_get_item(
     index->get_item(item, result);
 }
 
-void annoy_get_nns_by_item(
+size_t annoy_get_nns_by_item(
     AnnoyIndexInterface<int32_t, float> *index, 
     int item, 
     int n, 
@@ -56,9 +61,11 @@ void annoy_get_nns_by_item(
     index->get_nns_by_item(item, n, search_k, &resultV, &distancesV);
 
     std::copy(resultV.begin(), resultV.end(), result);
+    std::copy(distancesV.begin(), distancesV.end(), distances);
+    return resultV.size();
 }
 
-void annoy_get_nns_by_vector(
+size_t annoy_get_nns_by_vector(
     AnnoyIndexInterface<int32_t, float> *index, 
     const float *w, 
     int n, 
@@ -72,4 +79,6 @@ void annoy_get_nns_by_vector(
     index->get_nns_by_vector(w, n, search_k, &resultV, &distancesV);
 
     std::copy(resultV.begin(), resultV.end(), result);
+    std::copy(distancesV.begin(), distancesV.end(), distances);
+    return resultV.size();
 }
