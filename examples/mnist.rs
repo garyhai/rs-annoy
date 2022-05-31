@@ -1,7 +1,7 @@
 use mnist::{Mnist, MnistBuilder};
 use rand::Rng;
 use rulinalg::matrix::{BaseMatrix, Matrix};
-use std::path::PathBuf;
+use std::{path::PathBuf, env};
 
 fn load_mnist(
     size: u32,
@@ -60,7 +60,10 @@ fn main() {
         .test_set_length(tst_size)
         .finalize();
 
-    if !PathBuf::from("mnist.ann").exists() {
+    let mut ann_file = env::current_dir().unwrap();
+    ann_file.push("mnist.ann");
+
+    if !ann_file.exists() {
         if !save_model(trn_size, &trn_img, &trn_lbl, rows, cols) {
             eprintln!("failed to save index file");
             return;
@@ -68,7 +71,7 @@ fn main() {
     }
 
     let annoy = rannoy::Rannoy::new(28 * 28);
-    if !annoy.load(PathBuf::from("mnist.ann")) {
+    if !annoy.load(ann_file) {
         eprintln!("failed to load index file");
         return;
     }
@@ -99,12 +102,9 @@ fn main() {
 
         println!("TEST{}: expected: {}, actual: {:?}", i, lbl, actual);
         if actual[0] != lbl {
-            // let (_, trn) = load_mnist(10_000, 28, 28, &trn_img, &trn_lbl, lbl as usize);
             let (_, trn) = load_mnist(trn_size, rows, cols, &trn_img, &trn_lbl, result[0] as usize);
 
             println!("{}\n{}", img, trn);
         }
     }
-
-    annoy.unload();
 }
