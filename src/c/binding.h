@@ -3,6 +3,7 @@
 #include "annoylib.h"
 
 #ifdef __cplusplus
+using namespace Annoy;
 extern "C" {
 #endif
 
