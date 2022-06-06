@@ -1,7 +1,7 @@
 use mnist::{Mnist, MnistBuilder};
 use rand::Rng;
 use rulinalg::matrix::{BaseMatrix, Matrix};
-use std::{path::PathBuf, env};
+use std::{env, path::PathBuf};
 
 fn load_mnist(
     size: u32,
@@ -34,7 +34,7 @@ fn save_model(size: u32, img: &Vec<u8>, lbl: &Vec<u8>, rows: u32, cols: u32) -> 
             .map(|v| v as f32)
             .collect::<Vec<_>>();
 
-        annoy.add_item(i as i32, &img_to_vec);
+        annoy.add_item(i, &img_to_vec);
 
         if i % 1_000 == 0 {
             println!("Add item {}/{}.", i, size);

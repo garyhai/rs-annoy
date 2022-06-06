@@ -7,25 +7,27 @@ using namespace Annoy;
 extern "C" {
 #endif
 
-  AnnoyIndexInterface<int32_t, float>* annoy_index_angular(int f);
+  AnnoyIndexInterface<uint32_t, float>* annoy_index_angular(int f);
 
-  void annoy_delete_index(AnnoyIndexInterface<int32_t, float> *index);
+  void annoy_delete_index(AnnoyIndexInterface<uint32_t, float> *index);
 
-  bool annoy_add_item(AnnoyIndexInterface<int32_t, float> *index, int item, float *w);
+  bool annoy_add_item(AnnoyIndexInterface<uint32_t, float> *index, uint32_t item, float *w);
 
-  bool annoy_build(AnnoyIndexInterface<int32_t, float> *index, int q);
+  bool annoy_build(AnnoyIndexInterface<uint32_t, float> *index, int q);
   
-  void annoy_get_item(AnnoyIndexInterface<int32_t, float> *index, int item, float *result);
-  
-  size_t annoy_get_nns_by_item(AnnoyIndexInterface<int32_t, float> *index, int item, int n, int search_k, int *result, float *distances);
-  
-  size_t annoy_get_nns_by_vector(AnnoyIndexInterface<int32_t, float> *index, const float *w, int n, int search_k, int *result, float *distances);
+  bool annoy_get_item(AnnoyIndexInterface<uint32_t, float> *index, uint32_t item, float *result);
 
-  bool annoy_load(AnnoyIndexInterface<int32_t, float> *index, const char *file);
+  uint32_t annoy_get_n_items(AnnoyIndexInterface<uint32_t, float> *index);
+ 
+  size_t annoy_get_nns_by_item(AnnoyIndexInterface<uint32_t, float> *index, uint32_t item, size_t n, int search_k, uint32_t *result, float *distances);
   
-  void annoy_unload(AnnoyIndexInterface<int32_t, float> *index);
+  size_t annoy_get_nns_by_vector(AnnoyIndexInterface<uint32_t, float> *index, const float *w, size_t n, int search_k, uint32_t *result, float *distances);
 
-  bool annoy_save(AnnoyIndexInterface<int32_t, float> *index, const char *file);
+  bool annoy_load(AnnoyIndexInterface<uint32_t, float> *index, const char *file);
+  
+  void annoy_unload(AnnoyIndexInterface<uint32_t, float> *index);
+
+  bool annoy_save(AnnoyIndexInterface<uint32_t, float> *index, const char *file);
   
 #ifdef __cplusplus
 }
