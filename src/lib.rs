@@ -11,13 +11,18 @@ pub mod ffi {
     #[link(name = "binding", kind = "static")]
     extern "C" {
         pub fn annoy_index_angular(f: c_int) -> *mut AnnoyIndexInterface;
+
         pub fn annoy_delete_index(index: *mut AnnoyIndexInterface);
+
         pub fn annoy_add_item(
             index: *mut AnnoyIndexInterface,
             item: c_uint,
             w: *const c_float,
         ) -> bool;
+
         pub fn annoy_build(index: *mut AnnoyIndexInterface, q: c_int) -> bool;
+
+        pub fn annoy_on_disk_build(index: *mut AnnoyIndexInterface, p: *const c_char) -> bool;
 
         pub fn annoy_load(index: *mut AnnoyIndexInterface, p: *const c_char) -> bool;
 
@@ -68,6 +73,17 @@ impl Rannoy {
 
     pub fn build(&self, n: i32) -> bool {
         unsafe { ffi::annoy_build(self.1, n) }
+    }
+
+    pub fn on_disk_build<P: AsRef<Path>>(&self, path: P) -> bool {
+        unsafe {
+            path.as_ref()
+                .to_str()
+                .map(CString::new)
+                .and_then(Result::ok)
+                .map(|x| ffi::annoy_on_disk_build(self.1, x.as_ptr()))
+                .unwrap_or_default()
+        }
     }
 
     pub fn save<P: AsRef<Path>>(&self, path: P) -> bool {

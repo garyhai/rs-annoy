@@ -14,6 +14,8 @@ extern "C" {
   bool annoy_add_item(AnnoyIndexInterface<uint32_t, float> *index, uint32_t item, float *w);
 
   bool annoy_build(AnnoyIndexInterface<uint32_t, float> *index, int q);
+
+  bool annoy_on_disk_build(AnnoyIndexInterface<uint32_t, float> *index, const char *file);
   
   bool annoy_get_item(AnnoyIndexInterface<uint32_t, float> *index, uint32_t item, float *result);
 
